@@ -1,8 +1,21 @@
 const dotenv = require('dotenv');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const crypto = require('crypto');
 dotenv.config();
+
+// Función para convertir texto a binario
+function textToBinary(text) {
+    return text.split('').map(char => {
+        return char.charCodeAt(0).toString(2).padStart(8, '0');
+    }).join(' ');
+}
+
+// Función para convertir binario a texto
+function binaryToText(binary) {
+    return binary.split(' ').map(bin => {
+        return String.fromCharCode(parseInt(bin, 2));
+    }).join('');
+}
 
 function verificarToken(req, res, next) {
     const token = req.headers['authorization'] ? req.headers['authorization'].split(' ')[1] : null;
@@ -21,40 +34,14 @@ function verificarToken(req, res, next) {
 }
 
 function verificarDatos(dataSegura) {
-    if (typeof dataSegura !== 'string') {
-        console.error('Error: dataSegura no es una cadena', dataSegura);
-        throw new TypeError('dataSegura debe ser una cadena');
+    try {
+        const dataObject = binaryToText(dataSegura);
+        console.log('La data desencriptada como objeto: ', dataObject);
+        return dataObject;
+    } catch (e) {
+        console.error('Error al procesar dataSegura', e);
+        throw new Error('Formato de dataSegura no válido');
     }
-    
-    let partes = dataSegura.split(',');
-    let resultado = {};
-
-    partes.forEach((parte, index) => {
-        resultado[index === 0 ? 'nombre' : index === 1 && partes.length > 2 ? 'email' : 'password'] = decryptData(parte);
-    });
-
-    return resultado;
-}
-
-// Función para descifrar datos encriptados
-function decryptData(encryptedText) {
-    // Se obtiene la clave privada AES del entorno y se convierte en un buffer
-    const key = Buffer.from(process.env.AES_PRIVATE_KEY, 'hex');
-    // Se divide el texto encriptado en partes: IV (vector de inicialización), AuthTag (etiqueta de autenticación) y texto encriptado
-    const [ivHex, authTagHex, encryptedHex] = encryptedText.split(':');
-    // Se convierte el IV en un buffer
-    const iv = Buffer.from(ivHex, 'hex');
-    // Se convierte la AuthTag en un buffer
-    const authTag = Buffer.from(authTagHex, 'hex');
-    // Se crea un descifrador usando el algoritmo AES-256-GCM, la clave y el IV
-    const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
-    // Se establece la AuthTag para verificar la autenticidad del mensaje
-    decipher.setAuthTag(authTag);
-    // Se descifra el texto encriptado y se convierte a formato UTF-8
-    let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-    // Se devuelve el texto descifrado
-    return decrypted;
 }
 
 async function comparePassword(passwordString, bdHash) {
@@ -95,16 +82,18 @@ function generateToken(data, expirationTime) {
 }
 
 function encryptData(data) {
-    const key = Buffer.from(process.env.AES_PRIVATE_KEY, 'hex');
-    if (key.length !== 32) {
-        throw new Error('La longitud de la clave AES debe ser de 32 bytes.');
+    try {
+        const jsonData = JSON.stringify(data); // Convertir el objeto a una cadena JSON
+        console.log("Data en formato JSON:", jsonData);
+
+        const binaryData = textToBinary(jsonData);
+        console.log("Data en formato binario:", binaryData);
+
+        return binaryData; // Debería devolver el dato binario en lugar de JSON.stringify(data)
+    } catch (error) {
+        console.error('Error al encriptar data:', error);
+        throw new Error('Error al encriptar data');
     }
-    const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
-    const jsonData = JSON.stringify(data); // Convertir el objeto a una cadena JSON
-    let encrypted = cipher.update(jsonData, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-    return iv.toString('hex') + ':' + cipher.getAuthTag().toString('hex') + ':' + encrypted;
 }
 
 async function getHash(passwordString) {
@@ -121,6 +110,6 @@ module.exports = {
     checkNotAuthenticated,
     generateToken,
     encryptData,
-    decryptData,
+    decryptData: binaryToText,
     getHash
 };

@@ -19,41 +19,48 @@ async function register(req, res) {
     }
 }
 
+
 async function loginUser(req, res) {
+    // Obtener dataSegura del cuerpo de la solicitud
     const { dataSegura } = req.body;
     console.log("Esta es la data segura: ", dataSegura);
 
     try {
-        // Convertir dataSegura a una cadena JSON antes de encriptarla
+        // Convertir dataSegura a una cadena JSON antes de desencriptarla
         const dataSeguraJson = JSON.stringify(dataSegura);
-        const dataSeguraEncriptada = encryptData(dataSeguraJson);
-        console.log("La data encriptada es: ", dataSeguraEncriptada);
+        console.log("Esta es la data segura JSON: ", dataSeguraJson);
 
         // Desencriptar la data segura
-        const dataDesencriptada = decryptData(dataSeguraEncriptada);
-        console.log("La data desencriptada es: ", dataDesencriptada);
+        const dataDesencriptada = decryptData(dataSeguraJson);
+        console.log("Data desencriptada: ", dataDesencriptada);
 
         // Verificar los datos desencriptados
         const datos = verificarDatos(dataDesencriptada);
+
+        // Obtener el usuario por correo electrónico
         const usuario = await _findUserByEmail(datos.correo);
 
         if (!usuario) {
             console.log('Usuario incorrecto');
-            return res.status(404).send('Usuario o contraseña incorrectos');
+            return res.status(404).send('Usuario incorrecto');
         }
 
+        // Comparar la contraseña ingresada con la contraseña almacenada
         const validPassword = await comparePassword(datos.contrasenia, usuario.contrasenia_hashed);
+
         if (!validPassword) {
             console.log('Contraseña incorrecta');
-            return res.status(404).send('Usuario o contraseña incorrectos');
-        } else {
-            return res.status(200).json(usuario);
+            return res.status(404).send('Contraseña incorrecta');
         }
+
+        // Si las credenciales son válidas, devolver el usuario
+        return res.status(200).json(usuario);
     } catch (error) {
         console.error('Error al logear usuario:', error);
-        res.status(500).send('Error interno del servidor');
+        return res.status(500).send('Error interno del servidor');
     }
 }
+
 
 async function _findUserByEmail(correo) {
     try {
