@@ -21,6 +21,11 @@ function verificarToken(req, res, next) {
 }
 
 function verificarDatos(dataSegura) {
+    if (typeof dataSegura !== 'string') {
+        console.error('Error: dataSegura no es una cadena', dataSegura);
+        throw new TypeError('dataSegura debe ser una cadena');
+    }
+    
     let partes = dataSegura.split(',');
     let resultado = {};
 
@@ -32,6 +37,11 @@ function verificarDatos(dataSegura) {
 }
 
 function decryptData(encryptedText) {
+    if (typeof encryptedText !== 'string') {
+        console.error('Error: encryptedText no es una cadena', encryptedText);
+        throw new TypeError('encryptedText debe ser una cadena');
+    }
+
     const key = Buffer.from(process.env.AES_PRIVATE_KEY, 'hex');
     const [ivHex, authTagHex, encryptedHex] = encryptedText.split(':');
     const iv = Buffer.from(ivHex, 'hex');
@@ -40,7 +50,7 @@ function decryptData(encryptedText) {
     decipher.setAuthTag(authTag);
     let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
-    return decrypted;
+    return decrypted; // Return JSON string, not an object
 }
 
 async function comparePassword(passwordString, bdHash) {
@@ -80,11 +90,15 @@ function generateToken(data, expirationTime) {
     return jwt.sign({ data }, process.env.RSA_PRIVATE_KEY, { algorithm: 'RS256', expiresIn: expirationTime });
 }
 
-function encryptData(text) {
+function encryptData(data) {
     const key = Buffer.from(process.env.AES_PRIVATE_KEY, 'hex');
+    if (key.length !== 32) {
+        throw new Error('La longitud de la clave AES debe ser de 32 bytes.');
+    }
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
-    let encrypted = cipher.update(text, 'utf8', 'hex');
+    const jsonData = JSON.stringify(data); // Convertir el objeto a una cadena JSON
+    let encrypted = cipher.update(jsonData, 'utf8', 'hex');
     encrypted += cipher.final('hex');
     return iv.toString('hex') + ':' + cipher.getAuthTag().toString('hex') + ':' + encrypted;
 }
@@ -103,5 +117,6 @@ module.exports = {
     checkNotAuthenticated,
     generateToken,
     encryptData,
+    decryptData,
     getHash
 };

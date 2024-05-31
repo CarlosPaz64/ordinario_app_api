@@ -2,12 +2,15 @@ const express = require('express');
 const app = express();
 const routes = require('./routes/routes');
 const dotenv = require('dotenv');
+const cookieParser = require('cookie-parser');
 
 //Configura DotEnv
 dotenv.config();
 
 // Middleware para parsear JSON
 app.use(express.json());
+
+app.use(cookieParser());
 
 // Rutas generales
 app.use('/', routes);

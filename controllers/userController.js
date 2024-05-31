@@ -1,14 +1,17 @@
 const userService = require('../services/userServices');
-const authMiddleware = require('../checkAutenticathed/authMiddleware');
+const { encryptData, decryptData, verificarDatos, comparePassword } = require('../checkAutenticathed/authMiddleware');
 const { findUserByEmail } = require('../models/userModel');
 
 async function register(req, res) {
     const { dataSegura } = req.body;
     try {
+        // Convertir dataSegura a una cadena JSON antes de encriptarla
+        const dataSeguraJson = JSON.stringify(dataSegura);
+        const dataSeguraEncriptada = encryptData(dataSeguraJson);
+        console.log("La data encriptada es: ", dataSeguraEncriptada);
 
-        let datos = authMiddleware.verificarDatos(dataSegura);
-
-        await userService.registerUser(datos.nombre, datos.email, datos.password);
+        // Registrar al usuario sin desencriptar datos en este punto
+        await userService.registerUser(dataSegura.nombre, dataSegura.correo, dataSegura.contrasenia);
         res.status(201).send('Usuario registrado correctamente');
     } catch (error) {
         console.error('Error al registrar usuario:', error);
@@ -18,30 +21,41 @@ async function register(req, res) {
 
 async function loginUser(req, res) {
     const { dataSegura } = req.body;
+    console.log("Esta es la data segura: ", dataSegura);
 
     try {
-        let datos = authMiddleware.verificarDatos(dataSegura);
+        // Convertir dataSegura a una cadena JSON antes de encriptarla
+        const dataSeguraJson = JSON.stringify(dataSegura);
+        const dataSeguraEncriptada = encryptData(dataSeguraJson);
+        console.log("La data encriptada es: ", dataSeguraEncriptada);
+
+        // Desencriptar la data segura
+        const dataDesencriptada = decryptData(dataSeguraEncriptada);
+        console.log("La data desencriptada es: ", dataDesencriptada);
+
+        // Verificar los datos desencriptados
+        const datos = verificarDatos(dataDesencriptada);
         const usuario = await _findUserByEmail(datos.correo);
 
-        if(!usuario){
-            res.status(404).send('Usuario o contraseña incorrectos');
+        if (!usuario) {
+            console.log('Usuario incorrecto');
+            return res.status(404).send('Usuario o contraseña incorrectos');
         }
 
-        let validPassword = await authMiddleware.comparePassword(datos.contrasenia, usuario.contrasenia_hashed)
-
+        const validPassword = await comparePassword(datos.contrasenia, usuario.contrasenia_hashed);
         if (!validPassword) {
-            res.status(404).send('Usuario o contraseña incorrectos');
+            console.log('Contraseña incorrecta');
+            return res.status(404).send('Usuario o contraseña incorrectos');
         } else {
-            res.status(200).json(usuario);
+            return res.status(200).json(usuario);
         }
-        
     } catch (error) {
         console.error('Error al logear usuario:', error);
         res.status(500).send('Error interno del servidor');
     }
 }
 
-async function _findUserByEmail(correo){
+async function _findUserByEmail(correo) {
     try {
         const usuario = await userService.findUserByEmail(correo);
         return usuario;
@@ -76,4 +90,4 @@ module.exports = {
     loginUser,
     encontrarUsuarioId,
     logoutUser
-}
+};
