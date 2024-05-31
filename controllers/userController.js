@@ -11,7 +11,7 @@ async function register(req, res) {
         console.log("La data encriptada es: ", dataSeguraEncriptada);
 
         // Registrar al usuario sin desencriptar datos en este punto
-        await userService.registerUser(dataSegura.nombre, dataSegura.correo, dataSegura.contrasenia);
+        await userService.registerUser(dataSegura.nombre, dataSegura.apellidos, dataSegura.correo, dataSegura.contrasenia);
         res.status(201).send('Usuario registrado correctamente');
     } catch (error) {
         console.error('Error al registrar usuario:', error);
