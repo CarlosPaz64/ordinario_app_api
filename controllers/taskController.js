@@ -23,6 +23,7 @@ async function getTasksByUserId(req, res) {
 async function updateIdTask(req, res) {
     const { id } = req.params;
     const { descripcion, estatus, fecha_finalizacion, importancia } = req.body;
+
     try {
         const result = await taskService.updateIdTask(id, descripcion, estatus, fecha_finalizacion, importancia);
         if (result) {
@@ -31,6 +32,7 @@ async function updateIdTask(req, res) {
             res.status(404).json({ error: 'Tarea no encontrada' });
         }
     } catch (error) {
+        console.error('Error al actualizar la tarea:', error);
         res.status(500).json({ error: 'Error al actualizar la tarea' });
     }
 }

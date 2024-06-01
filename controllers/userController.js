@@ -39,19 +39,30 @@ async function loginUser(req, res) {
         // Intenta encontrar al usuario por correo electrónico
         const usuario = await findUserByEmail(correo);
 
-        // Si el usuario se encontró, establece la sesión del usuario y redirige a la página de inicio
-        if (usuario) {
-            // Generar token
-            const token = generateToken({ userId: usuario.id }, '1h');
-            console.log("El id del usuario: ", usuario.id);
-            console.log('Token generado y enviado al cliente:', token);
-
-            // Enviar token al cliente en la respuesta
-            return res.status(200).json({ token }); // Modificado para enviar el token en la respuesta
+        // Si el usuario no se encontró, responde con un error
+        if (!usuario) {
+            return res.status(404).send('Usuario o contraseña incorrectos');
         }
+
+        // Verificar la contraseña
+        const validPassword = await comparePassword(contrasenia, usuario.contrasenia_hashed);
+        if (!validPassword) {
+            return res.status(404).send('Usuario o contraseña incorrectos');
+        }
+
+        // Generar token si el usuario y la contraseña son correctos
+        const token = generateToken({ userId: usuario.id }, '1h');
+        console.log("El id del usuario: ", usuario.id);
+        console.log('Token generado y enviado al cliente:', token);
+
+        // Enviar token al cliente en la respuesta
+        return res.status(200).json({ token });
+
     } catch (error) {
         console.error('Error durante el proceso de inicio de sesión:', error);
-        res.render('login', { error: 'Error al iniciar sesión. Inténtalo de nuevo.' });
+        if (!res.headersSent) {
+            return res.render('login', { error: 'Error al iniciar sesión. Inténtalo de nuevo.' });
+        }
     }
 }
 

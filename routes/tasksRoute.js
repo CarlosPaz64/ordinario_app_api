@@ -25,8 +25,7 @@ function getLocalDate() {
 
 // Ruta para crear una nueva tarea
 router.post('/create-task', async (req, res) => {
-    const { descripcion, fecha_finalizacion, importancia } = req.body;
-    const id_usuario = req.session.userId;
+    const { descripcion, fecha_finalizacion, importancia, id_usuario } = req.body;
 
     // Obtener la fecha de hoy en formato yyyy-mm-dd
     const today = getLocalDate();
@@ -38,13 +37,14 @@ router.post('/create-task', async (req, res) => {
     console.log('Estatus determinado:', estatus);
 
     try {
-        await createTask(descripcion, estatus, fecha_finalizacion, importancia, id_usuario);
-        // res.redirect('/content'); // Redirige a la página principal después de crear la tarea
+        const taskId = await createTask(descripcion, estatus, fecha_finalizacion, importancia, id_usuario);
+        res.status(201).json({ id: taskId }); // Retorna el ID de la nueva tarea creada
     } catch (error) {
         console.error('Error al crear la tarea:', error);
-        // return res.render('content', { error: 'Error al crear la tarea. Inténtalo de nuevo.' });
+        res.status(500).json({ error: 'Error al crear la tarea. Inténtalo de nuevo.' });
     }
 });
+
 
 
 module.exports = router;
