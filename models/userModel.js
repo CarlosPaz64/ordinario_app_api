@@ -1,11 +1,11 @@
 const pool = require('../database/conexion');
 
 // Función para registrar un nuevo usuario
-async function registerUser(nombre, apellidos, correo, contrasenia_hashed) {
+async function registerUser(nombre, apellidos, correo, contraseniaHasheada) {
     try {
         const [result, fields] = await pool.query(
             'INSERT INTO users (nombre, apellidos, correo, contrasenia_hashed) VALUES (?, ?, ?, ?)',
-            [nombre, apellidos, correo, contrasenia_hashed]
+            [nombre, apellidos, correo, contraseniaHasheada]
         );
         return result.insertId; // Retorna el ID del nuevo usuario registrado
     } catch (error) {

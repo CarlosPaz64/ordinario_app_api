@@ -1,6 +1,6 @@
 const dotenv = require('dotenv');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 dotenv.config();
 
 function verificarToken(req, res, next) {
@@ -20,9 +20,22 @@ function verificarToken(req, res, next) {
 }
 
 async function comparePassword(passwordString, bdHash) {
-    const compareHashes = await bcrypt.compare(passwordString, bdHash);
-    return compareHashes;
+    console.log("Contraseña ingresada en comparePassword:", passwordString);
+    console.log("Contraseña en BD en comparePassword:", bdHash);
+
+    try {
+        // Compara la contraseña ingresada con la contraseña almacenada en forma de hash
+        const compareHashes = await bcrypt.compare(passwordString, bdHash);
+        console.log("Resultado de comparación de contraseñas en comparePassword:", compareHashes);
+        return compareHashes;
+    } catch (error) {
+        console.error("Error al comparar contraseñas:", error);
+        throw error;
+    }
 }
+
+
+
 
 function checkAuthenticated(req, res, next) {
     const token = req.cookies.jwt;
@@ -57,10 +70,19 @@ function generateToken(data, expirationTime) {
 }
 
 async function getHash(passwordString) {
-    const saltRounds = parseInt(process.env.PASSWORD_SALT_ROUNDS);
+    const saltRounds = 10; // Valor fijo de 10 saltos
+    console.log('Password string:', passwordString); // Mensaje de depuración para la contraseña
+    console.log('Salt rounds:', saltRounds); // Mensaje de depuración para los saltos
+
+    if (!passwordString) {
+        throw new Error('La contraseña es undefined o null');
+    }
+
     const password_hash = await bcrypt.hash(passwordString, saltRounds);
     return password_hash;
 }
+
+
 
 module.exports = {
     verificarToken,

@@ -1,7 +1,7 @@
 const userModel = require('../models/userModel');
 
-async function registerUser (nombre, apellidos, correo, contrasenia_hashed) {
-    return await userModel.registerUser(nombre, apellidos, correo, contrasenia_hashed);
+async function registerUser (nombre, apellidos, correo, contraseniaHasheada) {
+    return await userModel.registerUser(nombre, apellidos, correo, contraseniaHasheada);
 }
 
 async function findUserByEmail(correo) {

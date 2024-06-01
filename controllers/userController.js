@@ -4,9 +4,18 @@ const { findUserByEmail } = require('../models/userModel');
 
 async function register(req, res) {
     const { nombre, apellidos, correo, contrasenia } = req.body;
+    console.log("Datos del usuario por registrar: ", req.body); // Mensaje de depuración
+
+    if (!contrasenia) {
+        console.error('Contrasenia es undefined o null en el cuerpo de la solicitud');
+        return res.status(400).send('La contraseña es requerida');
+    }
+
     try {
         // Hashear la contraseña antes de registrar al usuario
+        console.log('Contrasenia recibida para hashear:', contrasenia); // Mensaje de depuración
         const contraseniaHasheada = await getHash(contrasenia);
+        console.log('Contrasenia hasheada:', contraseniaHasheada); // Mensaje de depuración
 
         // Registrar al usuario con la contraseña hasheada
         await userService.registerUser(nombre, apellidos, correo, contraseniaHasheada);
@@ -17,22 +26,31 @@ async function register(req, res) {
     }
 }
 
-
 async function loginUser(req, res) {
     // Obtener credenciales del cuerpo de la solicitud
     const { correo, contrasenia } = req.body;
+
+    console.log("Datos rebicidos del usuario: ", req.body);
+
+    if (!correo || !contrasenia) {
+        console.error('Uno de los datos es undefined');
+        return res.status(400).send('Los datos no se están mandando por completo');
+    }
 
     try {
         // Obtener el usuario por correo electrónico
         const usuario = await findUserByEmail(correo);
 
         if (!usuario) {
-            console.log('Usuario incorrecto');
-            return res.status(404).send('Usuario incorrecto');
+            console.log('Usuario incorrecto.');
+            return res.status(404).send('Usuario incorrecto. Mensaje de la API');
         }
 
-        // Comparar la contraseña ingresada con la contraseña almacenada
+        // Depuración del proceso de comparación de contraseñas
+        console.log("Contraseña ingresada en controlador: ", contrasenia);
+        console.log("Contraseña almacenada en BD: ", usuario.contrasenia_hashed);
         const validPassword = await comparePassword(contrasenia, usuario.contrasenia_hashed);
+        console.log("Resultado de comparación de contraseñas: ", validPassword);
 
         if (!validPassword) {
             console.log('Contraseña incorrecta');
@@ -46,6 +64,7 @@ async function loginUser(req, res) {
         return res.status(500).send('Error interno del servidor');
     }
 }
+
 
 async function encontrarUsuarioId(req, res) {
     const { id } = req.params;
