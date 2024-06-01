@@ -1,5 +1,5 @@
 const userService = require('../services/userServices');
-const { comparePassword, getHash } = require('../checkAutenticathed/authMiddleware');
+const { comparePassword, getHash, generateToken } = require('../checkAutenticathed/authMiddleware');
 const { findUserByEmail } = require('../models/userModel');
 
 async function register(req, res) {
@@ -27,44 +27,33 @@ async function register(req, res) {
 }
 
 async function loginUser(req, res) {
-    // Obtener credenciales del cuerpo de la solicitud
     const { correo, contrasenia } = req.body;
+    console.log('Este es el cuerpo de la solicitud: ', req.body);
 
-    console.log("Datos rebicidos del usuario: ", req.body);
-
+    // Verifica si se proporcionaron correo y contraseña
     if (!correo || !contrasenia) {
-        console.error('Uno de los datos es undefined');
-        return res.status(400).send('Los datos no se están mandando por completo');
+        return res.render('login', { error: 'Correo y contraseña son requeridos.' });
     }
 
     try {
-        // Obtener el usuario por correo electrónico
+        // Intenta encontrar al usuario por correo electrónico
         const usuario = await findUserByEmail(correo);
 
-        if (!usuario) {
-            console.log('Usuario incorrecto.');
-            return res.status(404).send('Usuario incorrecto. Mensaje de la API');
+        // Si el usuario se encontró, establece la sesión del usuario y redirige a la página de inicio
+        if (usuario) {
+            // Generar token
+            const token = generateToken({ userId: usuario.id }, '1h');
+            console.log("El id del usuario: ", usuario.id);
+            console.log('Token generado y enviado al cliente:', token);
+
+            // Enviar token al cliente en la respuesta
+            return res.status(200).json({ token }); // Modificado para enviar el token en la respuesta
         }
-
-        // Depuración del proceso de comparación de contraseñas
-        console.log("Contraseña ingresada en controlador: ", contrasenia);
-        console.log("Contraseña almacenada en BD: ", usuario.contrasenia_hashed);
-        const validPassword = await comparePassword(contrasenia, usuario.contrasenia_hashed);
-        console.log("Resultado de comparación de contraseñas: ", validPassword);
-
-        if (!validPassword) {
-            console.log('Contraseña incorrecta');
-            return res.status(404).send('Contraseña incorrecta');
-        }
-
-        // Si las credenciales son válidas, devolver el usuario
-        return res.status(200).json(usuario);
     } catch (error) {
-        console.error('Error al logear usuario:', error);
-        return res.status(500).send('Error interno del servidor');
+        console.error('Error durante el proceso de inicio de sesión:', error);
+        res.render('login', { error: 'Error al iniciar sesión. Inténtalo de nuevo.' });
     }
 }
-
 
 async function encontrarUsuarioId(req, res) {
     const { id } = req.params;

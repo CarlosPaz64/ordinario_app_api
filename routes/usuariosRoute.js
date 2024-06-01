@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-const { checkAuthenticated } = require('../checkAutenticathed/authMiddleware');
 const { getTasksByUserId, getRecentTasks, getTasksByStatus } = require('../models/taskModel'); // Importa la función para obtener los usuarios
 
 
@@ -28,7 +27,7 @@ router.post('/login', userController.loginUser);
 router.post('/logout', userController.logoutUser);
 
 // Rutas del inicio de la aplicación
-router.get('/content', checkAuthenticated, async (req, res) => {
+router.get('/content', async (req, res) => {
     const userId = req.session.userId;
     try {
         const tasks = await getTasksByUserId(userId);
@@ -40,7 +39,7 @@ router.get('/content', checkAuthenticated, async (req, res) => {
     }
   });
   
-  router.get('/', checkAuthenticated, async (req, res) => {
+  router.get('/', async (req, res) => {
     try {
         const user = await userModel.findUserById(req.userId); // Encuentra al usuario por su ID de usuario decodificado del token JWT
         if (!user) {
@@ -77,4 +76,6 @@ router.get('/content', checkAuthenticated, async (req, res) => {
     }
   });
 
+
+  router.get('/:id', userController.encontrarUsuarioId);
 module.exports = router;

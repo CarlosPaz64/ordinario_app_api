@@ -74,14 +74,16 @@ async function deleteTask(req, res) {
 }
 
 async function getTasksByStatus(req, res) {
-    const { id_usuario } = req.params;
+    const { id_usuario } = req.params; // Obtener el id_usuario de los parámetros de la ruta
     try {
         const tasks = await taskService.getTasksByStatus(id_usuario);
         res.json(tasks);
     } catch (error) {
-        res.status(500).json({ error: 'Error al obtener las tareas por estatus' });
+        console.error('Error al obtener tareas por estatus:', error);
+        res.status(500).json({ error: 'Error al obtener tareas por estatus' });
     }
 }
+
 
 async function getRecentTasks(req, res) {
     const { id_usuario } = req.params;
