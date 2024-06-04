@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
+// Conexión principal de la base de datos 
 const pool = mysql.createPool({
     connectionLimit: process.env.DB_CONNECTIONS || 10,
     host: process.env.DB_HOST,

@@ -1,6 +1,7 @@
-const taskService = require('../services/taskServices');
+const taskService = require('../services/taskServices'); // Llamada a los servicios de las tareas y sus operaciones
 
-async function createTask(req, res) {
+// Función para crear tareas
+async function createTask(req, res) { 
     const { descripcion, estatus, fecha_finalizacion, importancia, id_usuario } = req.body;
     try {
         const taskId = await taskService.createTask(descripcion, estatus, fecha_finalizacion, importancia, id_usuario);
@@ -10,6 +11,7 @@ async function createTask(req, res) {
     }
 }
 
+//Función para obtener las tareas de un usuario por su ID
 async function getTasksByUserId(req, res) {
     const { id_usuario } = req.params;
     try {
@@ -20,6 +22,7 @@ async function getTasksByUserId(req, res) {
     }
 }
 
+// Función para actualizar la tarea de un usuario
 async function updateIdTask(req, res) {
     const { id } = req.params;
     const { descripcion, estatus, fecha_finalizacion, importancia } = req.body;
@@ -37,6 +40,7 @@ async function updateIdTask(req, res) {
     }
 }
 
+// Función para obtener una tarea por su ID (no por el del usuario, sino por su llave primaria)
 async function getTaskById(req, res) {
     const { id } = req.params;
     try {
@@ -51,16 +55,18 @@ async function getTaskById(req, res) {
     }
 }
 
+// Función para marcar las tareas como 'Done'
 async function toggleTaskStatus(req, res) {
     const { id } = req.params;
     try {
         const newStatus = await taskService.toggleTaskStatus(id);
         res.json({ message: 'Estado de la tarea actualizado', newStatus });
     } catch (error) {
-        res.status(500).json({ error: 'Error al actualizar el estado de la tarea' });
+        res.status(500).json({ error: 'Error al actualizar el estado de la tarea o tarea vencida' });
     }
 }
 
+// Función para borrar las tareas
 async function deleteTask(req, res) {
     const { id } = req.params;
     try {
@@ -75,6 +81,7 @@ async function deleteTask(req, res) {
     }
 }
 
+// Función para obtener una tarea según su estatus
 async function getTasksByStatus(req, res) {
     const { id_usuario } = req.params; // Obtener el id_usuario de los parámetros de la ruta
     try {
@@ -86,7 +93,7 @@ async function getTasksByStatus(req, res) {
     }
 }
 
-
+// Obtiene las tareas recientes
 async function getRecentTasks(req, res) {
     const { id_usuario } = req.params;
     const { limit } = req.query;
