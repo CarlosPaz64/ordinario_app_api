@@ -28,6 +28,37 @@ CREATE TABLE IF NOT EXISTS tasks(
 
 -- DROP DATABASE tasks_organizer;
 ```
+
++ Dependencias utilizadas:
+```
+{
+  "name": "ordinario_app_api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "5.1.1",
+    "bcryptjs": "2.4.3",
+    "body-parser": "1.20.2",
+    "brcypt": "^1.0.1",
+    "cookie-parser": "1.4.6",
+    "dotenv": "16.4.5",
+    "express": "4.19.2",
+    "jsonwebtoken": "9.0.2",
+    "mysql2": "3.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.2"
+  }
+}
+```
 + Las variables de entorno de este proyecto son las siguientes:
 ```
 DB_CONNECTIONS=10
