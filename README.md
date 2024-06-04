@@ -41,4 +41,15 @@ RSA_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----\nMIIJJgIBAAKCAgBeSgjz2qIJxJW/R3
 AES_PRIVATE_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
 ```
 > **NOTA IMPORTANTE:** Favor de no cambiar el valor de RSA_PRIVATE_KEY ya que la API ya está configurada con esa nomenclatura.
+
++ Así mismo considerar que el archivo ``` app.js ``` contiene una configuración de CORS que le permite al ```localhost:3000``` hacer solicitudes. Por ello, si se desea cambiar el puerto del proyecto considerar lo siguente:
+```
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', 'http://localhost:3000'); // Allow requests from http://localhost:3000
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    next();
+  });
+```
+
 + Finalmente, se deberá de tener encendido este proyecto y el de la aplicación encendidos para que funcione :D
